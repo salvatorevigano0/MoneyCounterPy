@@ -1,8 +1,7 @@
-import json
-import os
+import json, os
 
-# Definizione dei dizionari per monete e banconote
-monete = {
+# Define dictionaries for coins and banknotes
+coins = {
     '1c': 0.01,
     '2c': 0.02,
     '5c': 0.05,
@@ -13,7 +12,7 @@ monete = {
     '2': 2,
 }
 
-banconote = {
+banknotes = {
     '5': 5,
     '10': 10,
     '20': 20,
@@ -25,85 +24,171 @@ banconote = {
 
 JSON_FILENAME = 'moneycounter.json'
 
-# Se il file JSON non esiste, inizializza i dati
+# If the JSON file does not exist, initialize it
 if not os.path.exists(JSON_FILENAME):
     with open(JSON_FILENAME, 'w') as f:
         json.dump({}, f)
 
-def conta_monete(monete_da_inserire):
+def check_input(money_type, money_quantity):
+    """
+    Check if the coin/banknote type is valid and if the quantity is a non-negative integer.
+    """
+    if money_type not in coins.keys() and money_type not in banknotes.keys():
+        print(f"Error: Invalid coin or banknote type. Try again.")
+        return False
+
+    try:
+        money_quantity = int(money_quantity)
+    except ValueError:
+        print(f"Error: The quantity must be an integer. Try again.")
+        return False
+    
+    if money_quantity < 0:
+        print(f"Error: The quantity must be a non-negative integer. Try again.")
+        return False
+
+    return True
+
+def count_coins(coins_to_insert):
+    """
+    Add the coins inserted to the JSON file.
+    """
     with open(JSON_FILENAME, 'r+') as f:
         data = json.load(f)
-        for moneta in monete_da_inserire:
-            if moneta in monete:
-                if moneta not in data:
-                    data[moneta] = 0
-                data[moneta] += monete_da_inserire[moneta]
+        for coin in coins_to_insert:
+            if coin in coins:
+                if coin not in data:
+                    data[coin] = 0
+                data[coin] += coins_to_insert[coin]
     with open(JSON_FILENAME, 'w') as f:
         json.dump(data, f)
 
-def conta_banconote(banconote_da_inserire):
+def remove_coins(coins_to_remove):
+    """
+    Remove the coins from the JSON file.
+    """
     with open(JSON_FILENAME, 'r+') as f:
         data = json.load(f)
-        for banconota in banconote_da_inserire:
-            if banconota in banconote:
-                if banconota not in data:
-                    data[banconota] = 0
-                data[banconota] += banconote_da_inserire[banconota]
+        for coin in coins_to_remove:
+            if coin in coins:
+                if coin in data:
+                    data[coin] -= coins_to_remove[coin]
+                    if data[coin] < 0:
+                        data[coin] = 0
     with open(JSON_FILENAME, 'w') as f:
         json.dump(data, f)
 
-def stampa_banconote_monete_totali():
+def count_banknotes(banknotes_to_insert):
+    """
+    Add the banknotes inserted to the JSON file.
+    """
+    with open(JSON_FILENAME, 'r+') as f:
+        data = json.load(f)
+        for banknote in banknotes_to_insert:
+            if banknote in banknotes:
+                if banknote not in data:
+                    data[banknote] = 0
+                data[banknote] += banknotes_to_insert[banknote]
+    with open(JSON_FILENAME, 'w') as f:
+        json.dump(data, f)
+
+def remove_banknotes(banknotes_to_remove):
+    """
+    Remove the banknotes from the JSON file.
+    """
+    with open(JSON_FILENAME, 'r+') as f:
+        data = json.load(f)
+        for banknote in banknotes_to_remove:
+            if banknote in banknotes:
+                if banknote in data:
+                    data[banknote] -= banknotes_to_remove[banknote]
+                    if data[banknote] < 0:
+                        data[banknote] = 0
+    with open(JSON_FILENAME, 'w') as f:
+        json.dump(data, f)
+
+def print_total_banknotes_coins():
+    """
+    Print the total number of banknotes and coins inserted in the JSON file.
+    """
     with open(JSON_FILENAME, 'r') as f:
         data = json.load(f)
-        num_banconote = sum(data.get(b, 0) for b in banconote)
-        num_monete = sum(data.get(m, 0) for m in monete)
-        print(f"Numero totale di banconote: {num_banconote}")
-        print(f"Numero totale di monete: {num_monete}")
+        num_banknotes = sum(data.get(b, 0) for b in banknotes)
+        num_coins = sum(data.get(c, 0) for c in coins)
+        print(f"Total number of banknotes: {num_banknotes}")
+        print(f"Total number of coins: {num_coins}")
 
-def stampa_saldo_totale():
+def print_total_balance():
+    """
+    Print the total balance of the banknotes and coins inserted in the JSON file.
+    """
     with open(JSON_FILENAME, 'r') as f:
         data = json.load(f)
-        saldo_totale = sum(data.get(b, 0) * banconote[b] for b in banconote) + sum(data.get(m, 0) * monete[m] for m in monete)
-        print(f"Saldo totale: {saldo_totale:.2f}")
+        total_balance = sum(data.get(b, 0) * banknotes[b] for b in banknotes) + sum(data.get(c, 0) * coins[c] for c in coins)
+        print(f"Total balance: {total_balance:.2f}")
 
-# Input del totale di soldi
-total_soldi = 0
-monete_da_inserire = {}
-banconote_da_inserire = {}
+# Input of the total amount of money
+total_money = 0
+coins_to_insert = {}
+coins_to_remove = {}
+banknotes_to_insert = {}
+banknotes_to_remove = {}
 
 while True:
-    print("1. Inserisci monete")
-    print("2. Inserisci banconote")
-    print("3. Vedi numero totale di banconote e monete inserite")
-    print("4. Vedi saldo totale")
-    print("5. Esci")
-    scelta = input("Scelta: ")
+    print("1. Insert coins")
+    print("2. Remove coins")
+    print("3. Insert banknotes")
+    print("4. Remove banknotes")
+    print("5. See total number of banknotes and coins inserted")
+    print("6. See total balance")
+    print("7. Exit")
+    choice = input("Choice: ")
     
-    if scelta == "5":
+    if choice == "7":
         break
     
-    if scelta == "1":
-        monete_da_inserire = {}
-        moneta = input("Inserisci il tipo di moneta (vuoto per terminare): ")
-        while moneta:
-            quantita = int(input("Inserisci la quantità: "))
-            if moneta in monete and quantita > 0:
-                monete_da_inserire[moneta] = quantita
-            moneta = input("Inserisci il tipo di moneta (vuoto per terminare): ")
-        conta_monete(monete_da_inserire)
+    if choice == "1":
+        coins_to_insert = {}
+        coin = input("Enter the type of coin (empty to finish): ")
+        while coin:
+            quantity = input("Enter the quantity: ")
+            if check_input(coin, quantity):
+                coins_to_insert[coin] = int(quantity)
+            coin = input("Enter the type of coin (empty to finish): ")
+        count_coins(coins_to_insert)
     
-    if scelta == "2":
-        banconote_da_inserire = {}
-        banconota = input("Inserisci il tipo di banconota (vuoto per terminare): ")
-        while banconota:
-            quantita = int(input("Inserisci la quantità: "))
-            if banconota in banconote and quantita > 0:
-                banconote_da_inserire[banconota] = quantita
-            banconota = input("Inserisci il tipo di banconota (vuoto per terminare): ")
-        conta_banconote(banconote_da_inserire)
+    if choice == "2":
+        coins_to_remove = {}
+        coin = input("Enter the type of coin to remove (empty to finish): ")
+        while coin:
+            quantity = input("Enter the quantity to remove: ")
+            if check_input(coin, quantity):
+                coins_to_remove[coin] = int(quantity)
+            coin = input("Enter the type of coin to remove (empty to finish): ")
+        remove_coins(coins_to_remove)
     
-    if scelta == "3":
-        stampa_banconote_monete_totali()
+    if choice == "3":
+        banknotes_to_insert = {}
+        banknote = input("Enter the type of banknote (empty to finish): ")
+        while banknote:
+            quantity = input("Enter the quantity: ")
+            if check_input(banknote, quantity):
+                banknotes_to_insert[banknote] = int(quantity)
+            banknote = input("Enter the type of banknote (empty to finish): ")
+        count_banknotes(banknotes_to_insert)
+    
+    if choice == "4":
+        banknotes_to_remove = {}
+        banknote = input("Enter the type of banknote to remove (empty to finish): ")
+        while banknote:
+            quantity = input("Enter the quantity to remove: ")
+            if check_input(banknote, quantity):
+                banknotes_to_remove[banknote] = int(quantity)
+            banknote = input("Enter the type of banknote to remove (empty to finish): ")
+        remove_banknotes(banknotes_to_remove)
+    
+    if choice == "5":
+        print_total_banknotes_coins()
         
-    if scelta == "4":
-        stampa_saldo_totale()
+    if choice == "6":
+        print_total_balance()
