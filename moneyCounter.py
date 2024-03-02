@@ -109,14 +109,33 @@ def remove_banknotes(banknotes_to_remove):
 
 def print_total_banknotes_coins():
     """
-    Print the total number of banknotes and coins inserted in the JSON file.
+    Print the total number of banknotes and coins inserted in the JSON file, including types and quantities.
     """
     with open(JSON_FILENAME, 'r') as f:
         data = json.load(f)
-        num_banknotes = sum(data.get(b, 0) for b in banknotes)
-        num_coins = sum(data.get(c, 0) for c in coins)
-        print(f"Total number of banknotes: {num_banknotes}")
-        print(f"Total number of coins: {num_coins}")
+
+        # Banknotes section
+        banknotes_output = "Banknotes:\n"
+        for banknote, quantity in data.items():
+            if banknote in banknotes and quantity > 0:
+                banknotes_output += f"{quantity} x {banknotes[banknote]}\n"
+
+        # Coins section
+        coins_output = "Coins:\n"
+        for coin, quantity in data.items():
+            if coin in coins and quantity > 0:
+                coins_output += f"{quantity} x {coins[coin]}\n"
+
+        if banknotes_output != "Banknotes:\n":
+            print(banknotes_output)
+        else:
+            print("No banknotes inserted.\n")
+
+        if coins_output != "Coins:\n":
+            print(coins_output)
+        else:
+            print("No coins inserted.\n")
+
 
 def print_total_balance():
     """
@@ -124,8 +143,17 @@ def print_total_balance():
     """
     with open(JSON_FILENAME, 'r') as f:
         data = json.load(f)
-        total_balance = sum(data.get(b, 0) * banknotes[b] for b in banknotes) + sum(data.get(c, 0) * coins[c] for c in coins)
-        print(f"Total balance: {total_balance:.2f}")
+        banknotes_balance = 0
+        coins_balance = 0
+        for key, value in data.items():
+            if key in coins:
+                coins_balance += coins[key] * value
+            if key in banknotes:
+                banknotes_balance += banknotes[key] * value
+
+        total_balance = banknotes_balance + coins_balance
+        print(f"Total Balance: €{total_balance:.2f}")
+
 
 # Input of the total amount of money
 total_money = 0
@@ -145,6 +173,7 @@ while True:
     choice = input("Choice: ")
     
     if choice == "7":
+        print("Thanks for using the program! Goodbye!")
         break
     
     if choice == "1":
